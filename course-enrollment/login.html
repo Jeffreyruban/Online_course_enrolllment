@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Online Course Enrollment & Progress Tracking</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 450px;
+        }
+
+        .login-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            animation: slideIn 0.6s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .form-wrapper {
+            padding: 40px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 1.5px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-group input::placeholder {
+            color: #999;
+        }
+
+        .role-info {
+            background: #f5f7fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+        }
+
+        .role-info .role-hint {
+            font-size: 12px;
+            color: #666;
+            margin-top: 8px;
+            line-height: 1.5;
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-login:active {
+            transform: translateY(0);
+        }
+
+        .error-message {
+            background: #ffebee;
+            color: #c62828;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #c62828;
+            font-size: 14px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @media (max-width: 480px) {
+            .header {
+                padding: 30px 20px;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .form-wrapper {
+                padding: 30px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="login-card">
+            <div class="header">
+                <h1>📚 Course Hub</h1>
+                <p>Online Course Enrollment & Progress Tracking</p>
+            </div>
+
+            <div class="form-wrapper">
+                <div id="errorMessage" class="error-message"></div>
+
+                <form id="loginForm" onsubmit="handleLogin(event)">
+                    <div class="form-group">
+                        <label for="username">Username</label>
+                        <input 
+                            type="text" 
+                            id="username" 
+                            placeholder="Enter your username"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input 
+                            type="password" 
+                            id="password" 
+                            placeholder="Enter your password"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="role">Login As</label>
+                        <select id="role" required onchange="updateRoleInfo()">
+                            <option value="">Select a role</option>
+                            <option value="Student">Student</option>
+                            <option value="Instructor">Instructor</option>
+                            <option value="Admin">Admin</option>
+                        </select>
+                    </div>
+
+                    <div id="roleInfo" class="role-info" style="display: none;">
+                        <strong id="roleTitle"></strong>
+                        <div class="role-hint" id="roleHint"></div>
+                    </div>
+
+                    <button type="submit" class="btn-login">Login</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Role information
+        const roleDetails = {
+            'Student': {
+                title: 'Student Access',
+                hint: 'View enrolled courses, track your progress, and monitor your scores.'
+            },
+            'Instructor': {
+                title: 'Instructor Access',
+                hint: 'Manage courses and view student progress within your courses.'
+            },
+            'Admin': {
+                title: 'Admin Access',
+                hint: 'Full system access including course management and analytics.'
+            }
+        };
+
+        function updateRoleInfo() {
+            const role = document.getElementById('role').value;
+            const roleInfo = document.getElementById('roleInfo');
+            const roleTitle = document.getElementById('roleTitle');
+            const roleHint = document.getElementById('roleHint');
+
+            if (role && roleDetails[role]) {
+                roleTitle.textContent = roleDetails[role].title;
+                roleHint.textContent = roleDetails[role].hint;
+                roleInfo.style.display = 'block';
+            } else {
+                roleInfo.style.display = 'none';
+            }
+        }
+
+        function handleLogin(event) {
+            event.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const role = document.getElementById('role').value;
+            const errorMessage = document.getElementById('errorMessage');
+
+            if (!username || !password || !role) {
+                showError('Please fill all fields');
+                return;
+            }
+
+            // Send login request to backend
+            fetch('backend/login.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    username: username,
+                    password: password,
+                    role: role
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Redirect based on role
+                    const redirectUrl = data.redirect_url;
+                    window.location.href = redirectUrl;
+                } else {
+                    showError(data.message || 'Login failed');
+                }
+            })
+            .catch(error => {
+                showError('Connection error. Please try again.');
+                console.error('Error:', error);
+            });
+        }
+
+        function showError(message) {
+            const errorMessage = document.getElementById('errorMessage');
+            errorMessage.textContent = message;
+            errorMessage.classList.add('show');
+            setTimeout(() => {
+                errorMessage.classList.remove('show');
+            }, 5000);
+        }
+
+        // Focus on username field on page load
+        document.getElementById('username').focus();
+    </script>
+</body>
+</html>
